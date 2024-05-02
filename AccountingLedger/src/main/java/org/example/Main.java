@@ -1,125 +1,246 @@
 package org.example;
-
 import java.time.LocalTime;
 import java.util.*;
 import java.io.*;
-import java.time.LocalDate;
 
 
-    public class Main {
-        // track all financial transaxctions for a business or for personal use.
-        // all files should be read from and saved to a transaction file named transactions.csv
-        // 3 Screens : Home (Add Deposit - prompt to , Make Payment - prompt , Ledger display screen, Exit),
-        //             Ledger (All - display all , Deposits - into account , Payments - negative #s (left account,
-        // Reports : month to date, previous month, year to date, previous year, search by vendor.
-        // Back Home
-        List<Customer> customers = new ArrayList<>();
-        static StringBuilder fullSheet = new StringBuilder();
+public class Main {
 
-        private static void welcomeScreen() {
-            LocalTime currentTime = LocalTime.now();
-            File transactionFile = new File("transactions.csv");
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Welcome to ! Please enter your name. ");
-            String name = scanner.nextLine();
-            Customer customer = new Customer();
-            customer.setName(name);
-            customer.setBalance(30.00);
-            System.out.println(" Hello " + name + ". As a token of our appreciation, we have started you off with a " +
-                    "balance of $30. \n Please choose one of the following: \n 1. Place New Transaction(s) \n 2" +
-                    ". View Previous " +
-                    "Transaction(s)");
-            fullSheet.append(name + "|" );
-            // name goes to stringbuilder to build sheet out.
-
-            int choice = scanner.nextInt();
-            while(choice != 3) {
-                switch (choice) {
-                    case 1:
-                        System.out.println("Please choose one of the following options. \n 1. Deposit \n 2. Make Payment" +
-                                "\n 3. View Ledger \n 4. Exit application. ");
-                        String nextChoice = scanner.nextLine();
-
-                        switch (nextChoice) {
-                            case "A" : case  "a" :
-
-                                // deposit screen
-
-                                System.out.println("Your current balance is " + customer.getBalance() + " Please " +
-                                        "enter amount " +
-                                        "you would like to deposit.");
-                                double depositAmount = scanner.nextDouble();
-                                customer.setBalance(customer.getBalance() - depositAmount);
-
-                                fullSheet.append(customer.getBalance() + "|");
-                                break;
+    static Customer customer = new Customer();
+    static List<Transactions> transactions = new ArrayList<>();
+    static List <Withdrawals> withdrawalList = new ArrayList<>();
+    static List <Deposit> depositList = new ArrayList<>();
 
 
-                            case "B": case "b":
-                                // add money to account
-                                System.out.println("Your current balance is: " + customer.getBalance() + ". How much would you " +
-                                        "like to add? (Debit only)");
-                                double amountAddedToBalance = scanner.nextDouble();
-                                customer.setBalance(customer.getBalance() + amountAddedToBalance);
-                                fullSheet.append(customer.getBalance()).append(currentTime);
-                                System.out.println(fullSheet);
-                                System.out.println("Your new balance is " + customer.getBalance() + ". Thank you.");
-                                break;
+    private static void welcomeScreen() {
+        LocalTime currentTime = LocalTime.now();
+        Customer customer = new Customer();
+        Scanner scanner = new Scanner(System.in);
 
-//                case 3:
-//                    try {
-//
-//                        FileInputStream reader = new FileInputStream(transactionFile);
-//                        FileWriter writer = new FileWriter(transactionFile, true);
-//                        // writing to the file
-//                        writer.write(String.valueOf(fullSheet));
-//                        // trying to read file
-//                        Scanner readingScanner = new Scanner(transactionFile);
-//                        readingScanner.useDelimiter("[|\\n]");
-//                        while(readingScanner.hasNextLine()){
-//                            System.out.println(scanner.nextLine());
-//                        }
-//                    } catch(Exception ex){
-//
-//                    }
+        System.out.println("Welcome Dana, Please choose one of the following: \n 1. Place New Transaction(s) " +
+                "\n 2. View Previous Transaction(s)");
 
-                            // case 4 will be to close the application.
-                        }
-                        case 2:
-                                // Ledger Screen : All entries, all deposits, all payments (negative entries), screen to run
-                                // predefined reports , (Month to date, previous month, year to date, previous year
 
-                                try {
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        while (choice != 3) {
+            switch (choice) {
+                // writing to file , deposits & purchases
+                // Placing new transactions :
+                case 1:
+                    System.out.println("Please choose one of the following options." +
+                            "\n A. Deposit (debit only)  " +
+                            "\n B. Take out money  " +
+                            " \n C. Add a Recent Purchase " +
+                            "\n D. Exit Application");
+                    String nextChoice = scanner.nextLine();
 
-                        FileInputStream reader = new FileInputStream(transactionFile);
-                        FileWriter writer = new FileWriter(transactionFile, true);
-                        // writing to the file
-                        writer.write(String.valueOf(fullSheet));
-                        // trying to read file
-                        Scanner readingScanner = new Scanner(transactionFile);
-                        readingScanner.useDelimiter("[|\\n]");
-                        readingScanner.nextLine();
-                        while(readingScanner.hasNextLine()){
-                            System.out.println(fullSheet);
-                        }
-                    } catch(Exception ex){
+                    switch (nextChoice) {
+                        case "A":
+                        case "a":
+                            // deposit
+                            depositCash(customer, scanner);
 
+                            break;
+
+                        case "B":
+                        case "b":
+                            // take out money
+                            withdrawCash(scanner, customer);
+                            System.out.println(transactions.size());
+                            break;
+
+                        case "C":
+                        case "c":
+                            // add new purchase
+                            addPurchase(scanner);
+                            System.out.println(transactions.size());
+                            break;
+                        case "D":
+                        case "d":
+                            // exit
+                            welcomeScreen();
+                            break;
                     }
+                    break;
+                // writing
+
+                case 2:
+                    // Viewing previous transactions
+                    System.out.println("Which transactions would you like to view ? \n A. ALl \n B. Deposits \n C" +
+                            ". " +
+                            "Withdrawals / Purchases ");
+
+                    String userChoice = scanner.nextLine();
+                    scanner.nextLine();
+                    switch (userChoice) {
+                        case "A":
+                        case "a":
+                        readAllFromFile();
+
+                            break;
+                        case "B":
+                        case "b":
+                            welcomeScreen();
+                            break;
+                    }
+                    break;
+
+
+            }
+        }
+        // find past deposits   ;
+
+
+    }
+
+    private static void addPurchase(Scanner scanner) {
+        Withdrawals withdrawal = new Withdrawals();
+        System.out.println("What company did you purchase from?");
+        String vendor = scanner.nextLine();
+        withdrawal.setVendor(vendor);
+
+        System.out.println("What did you buy?");
+        String itemBought = scanner.nextLine();
+        withdrawal.setItem(itemBought);
+        System.out.println("How much did it cost? ");
+        double itemPrice = scanner.nextDouble();
+        withdrawal.setPrice(itemPrice);
+        System.out.println(vendor + itemBought + "-" + itemPrice);
+        withdrawal.setIsPurchase(true);
+        transactions.add(withdrawal);
+        System.out.println(withdrawal.printResultForPurchase());
+        File transactionFile = new File("transactions.csv");
+        try(FileWriter fileWriter = new FileWriter(transactionFile, true); ) {
+
+
+          fileWriter.write(withdrawal.printResultForPurchase());
+        fileWriter.flush();
+
+
+        } catch (IOException e) {
+            System.out.println("Can't find file.");
+        }
+    }
+
+    private static void withdrawCash(Scanner scanner, Customer customer) {
+        System.out.println("How much did you take out? ");
+        double withdrawalAmount = scanner.nextDouble();
+        customer.setBalance(customer.getBalance() - withdrawalAmount);
+        Withdrawals newWithdrawl = new Withdrawals();
+        newWithdrawl.setTransactionAmount(withdrawalAmount);
+        scanner.nextLine();
+        newWithdrawl.addWithdrawal(withdrawalAmount);
+        transactions.add(newWithdrawl);
+        writeToFile(newWithdrawl);
+        System.out.println("Noted. Balance after deposit : " + customer.getBalance() + ".");
+        return;
+    }
+
+    private static void depositCash(Customer customer, Scanner scanner) {
+        System.out.println("Your current balance is: " + customer.getBalance() + ". How much would you " +
+                "like to deposit? (Debit only)");
+        Deposit deposit = new Deposit();
+        deposit.setCurrentBalance(customer.getBalance());
+        double depositAmount = scanner.nextDouble();
+        deposit.setTransactionAmount(depositAmount);
+        scanner.nextLine();
+        customer.setBalance(customer.getBalance() + depositAmount);
+
+        deposit.addDeposit(depositAmount);
+        deposit.setCurrentBalance(customer.getBalance());
+        transactions.add(deposit);
+        depositList.add(deposit);
+        writeToFile(deposit);
+        System.out.println(deposit.printResult());
+        return;
+
+    }
 
 
 
+    public static void writeToFile(Transactions transactions) {
+        try {
 
-                                }
+            File transactionFile = new File("transactions.csv");
+            FileWriter fileWriter = new FileWriter(transactionFile, true);
+            PrintWriter pw = new PrintWriter(fileWriter);
+
+                pw.println(transactions.printResult().toString());
+
+
+            pw.close();
+
+        } catch (IOException e) {
+            System.out.println("Can't find file.");
+        }
+    }
+
+    public static void writePurchaseToFile(Withdrawals newWithdrawal) {
+        try {
+
+            File transactionFile = new File("transactions.csv");
+            FileWriter fileWriter = new FileWriter(transactionFile, true);
+            PrintWriter pw = new PrintWriter(fileWriter);
+
+            pw.println(newWithdrawal.printResultForPurchase());
+
+
+            pw.close();
+
+        } catch (IOException e) {
+            System.out.println("Can't find file.");
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+
+        }
+    }
+
+    public static void readAllFromFile() {
+        try {
+            File transactionFile = new File("transactions.csv");
+            FileReader fileReader = new FileReader(transactionFile);
+            BufferedReader br = new BufferedReader(fileReader);
+            String line;
+            while((line = br.readLine()) != null){
+               String[] cols = line.split("\\|");
+
+               Transactions transaction = new Transactions();
+               transactions.add(transaction);
             }
 
-        }
-        public static void main(String[] args) {
-            welcomeScreen();
 
+        } catch (IOException e) {
+            System.out.println("Can't find file.");
         }
+    }
 
+//    public static void readDeposits(){
+//        try {
+//            File transactionFile = new File("transactions.csv");
+//            FileReader fileReader = new FileReader(transactionFile);
+//            BufferedReader br = new BufferedReader(fileReader);
+//            String line;
+//            while((line = br.readLine()) != null){
+//                for (Deposit deposit : depositList) {
+//                   data.add(deposit.printResult().toString());
+//                }
+//            }
+//
+//
+//        } catch (IOException e) {
+//            System.out.println("Can't find file.");
+//        }
+//    }
+
+
+    public static void main(String[] args) {
+        welcomeScreen();
+
+    }
 
 }
+
 
 
 
