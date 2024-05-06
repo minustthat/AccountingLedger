@@ -1,8 +1,5 @@
 package org.example;
 
-import java.util.Date;
-
-import static org.example.Main.customer;
 
 public class Withdrawals extends Transactions {
 static boolean isPurchase;
@@ -18,12 +15,6 @@ String item;
         this.item = item;
     }
 
-    Withdrawals(double priorBalance, double amountAfterOperation, String type, Date date, boolean isPurchase
-                ) {
-        super(priorBalance, amountAfterOperation, type, date);
-
-
-    }
 
     Withdrawals(){
         super();
@@ -55,35 +46,17 @@ String item;
     }
 
     String printResultForPurchase(){
-        return date + " | " + "Vendor : " + vendor + " | Price : " + price + " | Prior Balance : " + priorBalance +
-                " | current " +
-                "balance : " +
-                (customer.getBalance() - price);
+        return getDate() + "|" + getTime() + "|"  + getVendor() + " " + getDescription() + "|" + (getTransactionAmount() * -1) +
+                "\n";
     }
 
     public static void setIsPurchase(boolean isPurchase) {
         Withdrawals.isPurchase = isPurchase;
     }
 
-    double addWithdrawal(double amount) {
-        priorBalance = Customer.getBalance() + transactionAmount;
-        currentBalance = Customer.getBalance() - transactionAmount;
-        return currentBalance;
-    }
-
-    double addPurchase(){
-        isPurchase = true;
-        priorBalance = Customer.getBalance() + transactionAmount;
-        currentBalance = Customer.getBalance() - transactionAmount;
-        return currentBalance;
-    }
 
     String printPurchase() {
-        return date +  "Type : Withdrawl" + "Vendor : " + getVendor() + " | " + " Previous balance : " + getPriorBalance() + " |" +
-                " " +
-                " New " +
-                "Balance :" +
-                " " + getCurrentBalance() +
+        return getDate() + "|" + getTime() + "|"  + getVendor() + " " + getDescription() + "|" + (getTransactionAmount() * -1) +
                 "\n";
     }
 }
